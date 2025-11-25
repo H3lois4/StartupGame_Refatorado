@@ -6,7 +6,7 @@ Este projeto é a refatoração completa do Startup Game, originalmente implemen
 # Integrantes
 - Heloisa — Refatoração principal (VO, Startup, Config, Persistência, GameEngine, ConsoleApp)
 - Arthur — Implementação do padrão Observer e integração com eventos
-- Pedro — Implementações ...
+- Pedro — Implementação do Testes JUnit e seed determinística para resultados reproduzíveis
 
 # Estrutura do projeto
 resources/
@@ -39,10 +39,15 @@ src/
         GameEventListener.java
         GameEventManager.java
         GameEventType.java
-    ...
     persistence/
         DataSourceProvider.java
         StartupRepository.java
+    test/java/actions/
+        CortarCustosStrategyTest.java
+        EquipeStrategyTest.java
+        InvestidoresStrategyTest.java
+        MarketingStrategyTest.java
+        ProdutosStrategyTest.java
     ui/
         ConsoleApp.java
 .gitignore   
@@ -61,7 +66,7 @@ RELATORIO.md
 
 ➜ Opcionais implementados
 - Observer (eventos de decisão, impacto, fechamento e ranking)
-- ...
+- Testes JUnit
 
 # Arquivos importantes
 ➜ game.properties: Configura o jogo
@@ -92,7 +97,6 @@ RELATORIO.md
 # Padrões de Projeto Utilizados
 Strategy: aplicado às decisões do jogo (“Marketing”, “Equipe”, “Produto”, etc.).
 Observer: notificação de eventos (decisões, impactos, ranking).
-...
 Encapsulamento + SRP + Coesão: startup é agora um modelo limpo usando VOs e comportamento bem distribuído.
 
 # Conclusão
@@ -104,4 +108,4 @@ Inclui:
 - Persistência
 - Configurações externas
 - Banco de dados
-- Eventos (Observer e ...)
+- Eventos (Observer e Testes JUnit)
