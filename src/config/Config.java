@@ -1,29 +1,34 @@
 package config;
 
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * Lê configurações do arquivo game.properties.
- */
 public class Config {
 
-    private final Properties props = new Properties();
+    private int totalRodadas;
+    private int maxDecisoesPorRodada;
 
     public Config() {
-        try (FileInputStream fis = new FileInputStream("resources/game.properties")) {
-            props.load(fis);
-        } catch (IOException e) {
-            System.err.println("Erro ao ler game.properties: " + e.getMessage());
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("game.properties")) {
+
+            Properties props = new Properties();
+            props.load(is);
+
+            this.totalRodadas = Integer.parseInt(props.getProperty("total.rodadas"));
+            this.maxDecisoesPorRodada = Integer.parseInt(props.getProperty("max.decisoes.por.rodada"));
+
+        } catch (Exception e) {
+            System.out.println("Erro ao carregar configurações: " + e.getMessage());
+            this.totalRodadas = 5; // fallback
+            this.maxDecisoesPorRodada = 3;
         }
     }
 
     public int getTotalRodadas() {
-        return Integer.parseInt(props.getProperty("total.rodadas", "2"));
+        return totalRodadas;
     }
 
     public int getMaxDecisoesPorRodada() {
-        return Integer.parseInt(props.getProperty("max.decisoes.por.rodada", "3"));
+        return maxDecisoesPorRodada;
     }
 }

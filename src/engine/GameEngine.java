@@ -1,22 +1,22 @@
 package engine;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
+import config.Config;
 import model.Startup;
+import model.vo.Dinheiro;
+import model.vo.Humor;
+import model.vo.Percentual;
 import observer.GameEvent;
 import observer.GameEventManager;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+
 public class GameEngine {
 
-    public static final int TOTAL_RODADAS = 2;
-    public static final int MAX_DECISOES_POR_RODADA = 3;
-
+    private final int totalRodadas;
+    private final int maxDecisoes;
     private final GameEventManager eventManager;
-
-    public GameEngine(GameEventManager eventManager) {
-        this.eventManager = eventManager;
-    }
 
     public enum TipoDecisao {
         MARKETING,
@@ -26,37 +26,42 @@ public class GameEngine {
         CORTAR_CUSTOS
     }
 
+    public GameEngine(GameEventManager eventManager) {
+        this.eventManager = eventManager;
+
+        // Carrega configuração do arquivo game.properties
+        Config cfg = new Config();
+        this.totalRodadas = cfg.getTotalRodadas();
+        this.maxDecisoes = cfg.getMaxDecisoesPorRodada();
+    }
+
     public void executarJogo(List<Startup> startups, Scanner in) {
-        for (int rodada = 1; rodada <= TOTAL_RODADAS; rodada++) {
-            System.out.println("\n====== RODADA " + rodada + " / " + TOTAL_RODADAS + " ======");
+
+        for (int rodada = 1; rodada <= totalRodadas; rodada++) {
+            System.out.println("\n====== RODADA " + rodada + " / " + totalRodadas + " ======");
 
             int idx = 1;
             for (Startup s : startups) {
                 s.setRodadaAtual(rodada);
+
                 System.out.println("\n-- Jogador " + idx++ + ": " + s.getNome() + " --");
                 System.out.println(s);
 
                 List<TipoDecisao> escolhidas = escolherDecisoesNoConsole(in);
 
-                //  Notifica cada escolha ANTES de aplicar
                 for (TipoDecisao d : escolhidas) {
-                    eventManager.notify(new GameEvent(
-                            "DECISAO",
-                            s.getNome() + " escolheu " + d
-                    ));
+                    eventManager.notify(new GameEvent("DECISAO",
+                            s.getNome() + " escolheu " + d));
 
                     aplicarDecisao(s, d);
                 }
 
                 fecharRodada(s);
 
-                //  Notifica fechamento da rodada
-                eventManager.notify(new GameEvent(
-                        "FECHAMENTO",
-                        "Fechamento da rodada para " + s.getNome()
-                ));
+                eventManager.notify(new GameEvent("FECHAMENTO",
+                        "Fechamento da rodada para " + s.getNome()));
 
-                System.out.println("Resumo pos-rodada: " + s);
+                System.out.println("Resumo pós-rodada: " + s);
             }
         }
 
@@ -65,71 +70,74 @@ public class GameEngine {
 
     private void aplicarDecisao(Startup s, TipoDecisao d) {
 
-        String desc = ""; // <-- Para gerar evento depois
+        String desc = "";
 
         switch (d) {
             case MARKETING -> {
-                s.setCaixa(s.getCaixa() - 10_000);
-                s.setReputacao(s.getReputacao() + 5);
-                s.addBonusPercentReceitaProx(0.03);
-                desc = "Marketing: -R$10k caixa, +5 rep, +3% receita";
+                s.addCaixa(-10_000);
+                s.addReputacao(+5);
+                s.addBonusReceitaProx(0.03);
+                desc = "Marketing: -R$10k, +5 rep, +3% receita";
             }
             case EQUIPE -> {
-                s.setCaixa(s.getCaixa() - 5_000);
-                s.setMoral(s.getMoral() + 7);
-                desc = "Equipe: -R$5k caixa, +7 moral";
+                s.addCaixa(-5_000);
+                s.addMoral(+7);
+                desc = "Equipe: -R$5k, +7 moral";
             }
             case PRODUTO -> {
-                s.setCaixa(s.getCaixa() - 8_000);
-                s.addBonusPercentReceitaProx(0.04);
-                desc = "Produto: -R$8k caixa, +4% receita";
+                s.addCaixa(-8_000);
+                s.addBonusReceitaProx(0.04);
+                desc = "Produto: -R$8k, +4% receita";
             }
             case INVESTIDORES -> {
                 boolean aprovado = Math.random() < 0.60;
                 if (aprovado) {
-                    s.setCaixa(s.getCaixa() + 40_000);
-                    s.setReputacao(s.getReputacao() + 3);
-                    desc = "Investidores APROVADO: +R$40k caixa, +3 rep";
+                    s.addCaixa(+40_000);
+                    s.addReputacao(+3);
+                    desc = "Investidores APROVADO: +R$40k, +3 rep";
                 } else {
-                    s.setReputacao(s.getReputacao() - 2);
+                    s.addReputacao(-2);
                     desc = "Investidores REPROVADO: -2 rep";
                 }
             }
             case CORTAR_CUSTOS -> {
-                s.setCaixa(s.getCaixa() + 8_000);
-                s.setMoral(s.getMoral() - 5);
-                desc = "Cortar custos: +R$8k caixa, -5 moral";
+                s.addCaixa(+8_000);
+                s.addMoral(-5);
+                desc = "Cortar custos: +R$8k, -5 moral";
             }
         }
 
         s.clamparHumor();
         s.registrar(desc);
 
-        //  Notifica os efeitos
         eventManager.notify(new GameEvent("IMPACTO", s.getNome() + ": " + desc));
     }
 
     private void fecharRodada(Startup s) {
-        double receita = s.receitaRodada();
-        s.setCaixa(s.getCaixa() + receita);
 
-        double fatorCrescimento = 1.0
-                + (s.getReputacao() / 100.0) * 0.01
-                + (s.getMoral() / 100.0) * 0.005;
-        s.setReceitaBase(s.getReceitaBase() * fatorCrescimento);
+        Dinheiro receita = s.receitaRodada();
+
+        s.setCaixa(s.getCaixa().add(receita.toDouble()));
+
+        double fatorCrescimento =
+                1.0 +
+                (s.getReputacao().getValor() / 100.0) * 0.01 +
+                (s.getMoral().getValor() / 100.0) * 0.005;
+
+        s.setReceitaBase(s.getReceitaBase().multiply(fatorCrescimento));
 
         String msg = String.format(Locale.US,
-                "Fechamento: receita R$%.2f; nova receitaBase R$%.2f; caixa R$%.2f",
-                round2(receita), round2(s.getReceitaBase()), round2(s.getCaixa()));
+                "Fechamento: receita %s; nova receitaBase %s; caixa %s",
+                receita,
+                s.getReceitaBase(),
+                s.getCaixa());
 
         s.registrar(msg);
-
-        //  Evento de fechamento
         eventManager.notify(new GameEvent("FECHAMENTO", s.getNome() + ": " + msg));
     }
 
     private void exibirRanking(List<Startup> startups, Scanner in) {
-        System.out.println("\n====== RELATORIO FINAL ======");
+        System.out.println("\n====== RELATÓRIO FINAL ======");
 
         startups.sort(Comparator.comparingDouble(Startup::scoreFinal).reversed());
 
@@ -142,7 +150,7 @@ public class GameEngine {
                     pos++, s.getNome(), round2(s.scoreFinal()), s.toString());
         }
 
-        System.out.print("\nDeseja ver historico (s/n)? ");
+        System.out.print("\nDeseja ver histórico (s/n)? ");
         if (in.nextLine().trim().equalsIgnoreCase("s")) {
             for (Startup s : startups) {
                 System.out.println("\n-- Histórico: " + s.getNome() + " --");
@@ -156,10 +164,11 @@ public class GameEngine {
     private List<TipoDecisao> escolherDecisoesNoConsole(Scanner in) {
         List<TipoDecisao> todas = Arrays.asList(TipoDecisao.values());
         List<TipoDecisao> escolhidas = new ArrayList<>();
-        int restantes = MAX_DECISOES_POR_RODADA;
+
+        int restantes = maxDecisoes;
 
         while (restantes > 0) {
-            System.out.println("\nEscolha uma decisao (" + restantes + " restante(s)):");
+            System.out.println("\nEscolha uma decisão (" + restantes + " restante(s)):");
             for (int i = 0; i < todas.size(); i++) {
                 System.out.println((i + 1) + ") " + todas.get(i));
             }
@@ -169,9 +178,7 @@ public class GameEngine {
             System.out.print("Opção: ");
             String entrada = in.nextLine().trim();
 
-            if (entrada.isEmpty() || entrada.equals("0")) {
-                break;
-            }
+            if (entrada.isEmpty() || entrada.equals("0")) break;
             if (entrada.equalsIgnoreCase("q")) {
                 System.out.println("Saindo do jogo...");
                 System.exit(0);
@@ -181,20 +188,21 @@ public class GameEngine {
             try {
                 opt = Integer.parseInt(entrada);
             } catch (NumberFormatException e) {
-                System.out.println("Entrada invalida.");
+                System.out.println("Entrada inválida.");
                 continue;
             }
 
             if (opt < 1 || opt > todas.size()) {
-                System.out.println("Opcao inválida.");
+                System.out.println("Opção inválida.");
                 continue;
             }
 
             TipoDecisao d = todas.get(opt - 1);
             if (escolhidas.contains(d)) {
-                System.out.println("Ja escolhida nesta rodada.");
+                System.out.println("Já escolhida nesta rodada.");
                 continue;
             }
+
             escolhidas.add(d);
             restantes--;
         }
