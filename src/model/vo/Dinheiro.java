@@ -1,34 +1,27 @@
 package model.vo;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.Locale;
-
-/**
- * Value Object para representar valores monetários.
- */
 public class Dinheiro {
 
-    private final BigDecimal valor;
+    private double valor;
 
     public Dinheiro(double valor) {
-        this.valor = BigDecimal.valueOf(valor).setScale(2, RoundingMode.HALF_UP);
+        this.valor = Math.max(0, valor);
     }
 
-    public double getValor() {
-        return valor.doubleValue();
+    public double toDouble() {
+        return valor;
     }
 
-    public Dinheiro somar(Dinheiro outro) {
-        return new Dinheiro(this.valor.add(outro.valor).doubleValue());
+    public void aumentar(double v) {
+        valor += v;
     }
 
-    public Dinheiro subtrair(Dinheiro outro) {
-        return new Dinheiro(this.valor.subtract(outro.valor).doubleValue());
+    public void diminuir(double v) {
+        valor = Math.max(0, valor - v);
     }
 
     @Override
     public String toString() {
-        return String.format(Locale.US, "R$%.2f", valor);
+        return String.format("R$ %.2f", valor);
     }
 }
