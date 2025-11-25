@@ -1,27 +1,56 @@
 package persistence;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import javax.sql.DataSource;
+import org.h2.jdbcx.JdbcDataSource;
 
-/**
- * Cria conexões com o banco H2.
- */
+import java.sql.Connection;
+import java.sql.Statement;
+
 public class DataSourceProvider {
 
-    private static final String URL = "jdbc:h2:./startupgame_db";
-    private static final String USER = "sa";
-    private static final String PASS = "";
+    private static DataSource dataSource;
 
-    static {
-        try {
-            Class.forName("org.h2.Driver");
-        } catch (ClassNotFoundException e) {
-            System.err.println("Driver H2 não encontrado!");
+    public static DataSource getDataSource() {
+        if (dataSource == null) {
+            JdbcDataSource ds = new JdbcDataSource();
+            ds.setURL("jdbc:h2:./database/startup_game;AUTO_SERVER=TRUE");
+            ds.setUser("sa");
+            ds.setPassword("");
+
+            dataSource = ds;
+
+            initDatabase();
         }
+        return dataSource;
     }
 
-    public static Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASS);
+    /** Carrega e executa schema.sql automaticamente */
+    private static void initDatabase() {
+        try (Connection conn = dataSource.getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS startups (
+                    id IDENTITY PRIMARY KEY,
+                    nome VARCHAR(255),
+                    caixa DOUBLE,
+                    receita_base DOUBLE,
+                    reputacao INT,
+                    moral INT,
+                    score DOUBLE
+                );
+            """);
+
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS historico (
+                    id IDENTITY PRIMARY KEY,
+                    startup_id BIGINT,
+                    mensagem VARCHAR(500)
+                );
+            """);
+
+        } catch (Exception e) {
+            System.out.println("Erro ao inicializar banco H2: " + e.getMessage());
+        }
     }
 }

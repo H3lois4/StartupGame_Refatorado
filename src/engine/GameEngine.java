@@ -12,6 +12,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+import persistence.StartupRepository;
+
+
 public class GameEngine {
 
     private final int totalRodadas;
@@ -137,29 +140,41 @@ public class GameEngine {
     }
 
     private void exibirRanking(List<Startup> startups, Scanner in) {
-        System.out.println("\n====== RELATÓRIO FINAL ======");
+    System.out.println("\n====== RELATÓRIO FINAL ======");
 
-        startups.sort(Comparator.comparingDouble(Startup::scoreFinal).reversed());
+    startups.sort(Comparator.comparingDouble(Startup::scoreFinal).reversed());
 
-        int pos = 1;
-        for (Startup s : startups) {
-            eventManager.notify(new GameEvent("RANKING",
-                    s.getNome() + " terminou com score " + round2(s.scoreFinal())));
+    int pos = 1;
+    for (Startup s : startups) {
+        eventManager.notify(new GameEvent("RANKING",
+                s.getNome() + " terminou com score " + round2(s.scoreFinal())));
 
-            System.out.printf(Locale.US, "%d) %s | SCORE: %.2f | %s%n",
-                    pos++, s.getNome(), round2(s.scoreFinal()), s.toString());
-        }
-
-        System.out.print("\nDeseja ver histórico (s/n)? ");
-        if (in.nextLine().trim().equalsIgnoreCase("s")) {
-            for (Startup s : startups) {
-                System.out.println("\n-- Histórico: " + s.getNome() + " --");
-                s.getHistorico().forEach(System.out::println);
-            }
-        }
-
-        System.out.println("\nFim. Obrigado por jogar!");
+        System.out.printf(Locale.US, "%d) %s | SCORE: %.2f | %s%n",
+                pos++, s.getNome(), round2(s.scoreFinal()), s.toString());
     }
+
+    System.out.print("\nDeseja ver histórico (s/n)? ");
+    if (in.nextLine().trim().equalsIgnoreCase("s")) {
+        for (Startup s : startups) {
+            System.out.println("\n-- Histórico: " + s.getNome() + " --");
+            s.getHistorico().forEach(System.out::println);
+        }
+    }
+
+    StartupRepository repo = new StartupRepository();
+
+    System.out.println("\nSalvando no banco H2...");
+
+    for (Startup s : startups) {
+        repo.salvarStartup(s);
+        repo.salvarHistorico(s);
+    }
+
+    System.out.println("Dados persistidos com sucesso!");
+
+    System.out.println("\nFim. Obrigado por jogar!");
+}
+
 
     private List<TipoDecisao> escolherDecisoesNoConsole(Scanner in) {
         List<TipoDecisao> todas = Arrays.asList(TipoDecisao.values());
