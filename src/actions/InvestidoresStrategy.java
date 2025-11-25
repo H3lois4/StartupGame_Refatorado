@@ -4,9 +4,12 @@ import model.Startup;
 
 public class InvestidoresStrategy implements DecisaoStrategy {
 
+    private static final double CHANCE_APROVACAO = 0.60;
+
     @Override
     public void aplicar(Startup s) {
-        boolean aprovado = Math.random() < 0.60;
+        boolean aprovado = Math.random() < CHANCE_APROVACAO;
+
         if (aprovado) {
             s.setCaixa(s.getCaixa() + 40_000);
             s.setReputacao(s.getReputacao() + 3);
@@ -15,6 +18,7 @@ public class InvestidoresStrategy implements DecisaoStrategy {
             s.setReputacao(s.getReputacao() - 2);
             s.registrar("Investidores: REPROVADO -2 rep");
         }
+
         s.clamparHumor();
     }
 
