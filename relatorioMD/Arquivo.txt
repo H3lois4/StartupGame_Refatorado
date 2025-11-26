@@ -68,6 +68,17 @@
         ConsoleApp.java
         Mostra menus, lê entrada, envia decisões para a  engine.
 
+--> test/
+
+        Contém testes unitários usando JUnit, garantindo que as estratégias funcionem corretamente.
+
+        Exemplos de testes:
+        CortarCustosStrategyTest.java
+        EquipeStrategyTest.java
+        InvestidoresStrategyTest.java
+        MarketingStrategyTest.java
+        ProdutoStrategyTest.java
+
 ========== Fluxo de Execução do Sistema =========
 
     1. O usuário inicia o programa (Main).
