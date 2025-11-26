@@ -1,79 +1,95 @@
 package model;
 
-import java.util.*;
+import model.vo.Dinheiro;
+import model.vo.Humor;
+import model.vo.Percentual;
 
-/**
- * Representa uma startup com seu estado e histórico.
- */
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
 public class Startup {
+
     private String nome;
-    private double caixa;
-    private double receitaBase;
-    private int reputacao;
-    private int moral;
+    private Dinheiro caixa;
+    private Dinheiro receitaBase;
+    private Humor reputacao;
+    private Humor moral;
+
+    private Percentual bonusReceitaProx = new Percentual(0.0);
     private int rodadaAtual = 1;
 
-    private double bonusPercentReceitaProx = 0.0;
     private final List<String> historico = new ArrayList<>();
 
-    public Startup(String nome, double caixa, double receitaBase, int reputacao, int moral) {
+    public Startup(String nome, double caixaInicial, double receitaInicial, int reputacaoInicial, int moralInicial) {
         this.nome = nome;
-        this.caixa = caixa;
-        this.receitaBase = receitaBase;
-        this.reputacao = reputacao;
-        this.moral = moral;
+        this.caixa = new Dinheiro(caixaInicial);
+        this.receitaBase = new Dinheiro(receitaInicial);
+        this.reputacao = new Humor(reputacaoInicial);
+        this.moral = new Humor(moralInicial);
     }
 
     public void registrar(String linha) {
         historico.add("R" + rodadaAtual + " - " + linha);
     }
 
-    public double receitaRodada() {
-        double receita = receitaBase * (1.0 + bonusPercentReceitaProx);
-        bonusPercentReceitaProx = 0.0;
-        return receita;
+    /** Receita da rodada considerando bônus */
+    public Dinheiro receitaRodada() {
+        double valor = receitaBase.toDouble() * (1.0 + bonusReceitaProx.toDouble());
+        bonusReceitaProx = new Percentual(0.0);
+        return new Dinheiro(valor);
     }
 
+    /** Garantir reputação e moral em 0..100 (delegado ao VO Humor) */
     public void clamparHumor() {
-        reputacao = Math.max(0, Math.min(100, reputacao));
-        moral = Math.max(0, Math.min(100, moral));
+        reputacao = reputacao.clamp();
+        moral = moral.clamp();
     }
 
     public double scoreFinal() {
-        return reputacao * 0.35
-                + moral * 0.25
-                + (caixa / 1000.0) * 0.15
-                + (receitaBase / 1000.0) * 0.25;
+        return reputacao.getValor() * 0.35
+                + moral.getValor() * 0.25
+                + (caixa.toDouble() / 1000.0) * 0.15
+                + (receitaBase.toDouble() / 1000.0) * 0.25;
     }
 
-    // Getters e Setters
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
 
-    public double getCaixa() { return caixa; }
-    public void setCaixa(double caixa) { this.caixa = caixa; }
+    public Dinheiro getCaixa() { return caixa; }
+    public void setCaixa(Dinheiro caixa) { this.caixa = caixa; }
+    public void addCaixa(double delta) { this.caixa = this.caixa.add(delta); }
 
-    public double getReceitaBase() { return receitaBase; }
-    public void setReceitaBase(double receitaBase) { this.receitaBase = receitaBase; }
+    public Dinheiro getReceitaBase() { return receitaBase; }
+    public void setReceitaBase(Dinheiro receitaBase) { this.receitaBase = receitaBase; }
+    public void addReceitaBase(double delta) { this.receitaBase = this.receitaBase.add(delta); }
 
-    public int getReputacao() { return reputacao; }
-    public void setReputacao(int reputacao) { this.reputacao = reputacao; }
+    public Humor getReputacao() { return reputacao; }
+    public void setReputacao(Humor reputacao) { this.reputacao = reputacao; }
+    public void addReputacao(int delta) { this.reputacao = this.reputacao.add(delta); }
 
-    public int getMoral() { return moral; }
-    public void setMoral(int moral) { this.moral = moral; }
+    public Humor getMoral() { return moral; }
+    public void setMoral(Humor moral) { this.moral = moral; }
+    public void addMoral(int delta) { this.moral = this.moral.add(delta); }
+
+    public Percentual getBonusReceitaProx() { return bonusReceitaProx; }
+    public void addBonusReceitaProx(double delta) {
+        this.bonusReceitaProx = this.bonusReceitaProx.add(delta);
+    }
 
     public int getRodadaAtual() { return rodadaAtual; }
     public void setRodadaAtual(int rodadaAtual) { this.rodadaAtual = rodadaAtual; }
-
-    public double getBonusPercentReceitaProx() { return bonusPercentReceitaProx; }
-    public void addBonusPercentReceitaProx(double delta) { this.bonusPercentReceitaProx += delta; }
 
     public List<String> getHistorico() { return historico; }
 
     @Override
     public String toString() {
         return String.format(Locale.US,
-                "%s | Caixa: R$%.2f | ReceitaBase: R$%.2f | Rep: %d | Moral: %d",
-                nome, caixa, receitaBase, reputacao, moral);
+                "%s | Caixa: %s | ReceitaBase: %s | Rep: %d | Moral: %d",
+                nome,
+                caixa,
+                receitaBase,
+                reputacao.getValor(),
+                moral.getValor());
     }
 }

@@ -1,5 +1,6 @@
 package app;
 
+import config.Config;
 import observer.ConsoleEventListener;
 import observer.GameEventManager;
 import ui.ConsoleApp;
@@ -8,14 +9,17 @@ public class Main {
 
     public static void main(String[] args) {
 
-        // Cria o gerenciador de eventos
-        GameEventManager eventManager = new GameEventManager();
+        try {
+            Config config = new Config();
 
-        // Adiciona um observador (listener)
-        eventManager.addListener(new ConsoleEventListener());
+            GameEventManager eventManager = new GameEventManager();
+            eventManager.addListener(new ConsoleEventListener());
 
-        // Inicializa a aplicação
-        ConsoleApp app = new ConsoleApp(eventManager);
-        app.iniciar();
+            ConsoleApp app = new ConsoleApp(eventManager, config);
+            app.iniciar();
+
+        } catch (Exception e) {
+            System.err.println("Erro ao iniciar o jogo: " + e.getMessage());
+        }
     }
 }
