@@ -6,8 +6,8 @@
    O sistema utiliza diversos padrões de projeto e uma arquitetura organizada em camadas, 
  incluindo Observer, Strategy, Factory e separação em ui, engine, model, persistence, dentre outros.
  
-   O objetivo é oferecer uma experiência de jogo onde o usuário toma decisões 
- que afetam métricas como dinheiro, humor da equipe e percentual de progresso.
+   O objetivo é oferecer ao usuário uma experiência tomada de decisões 
+ que afetam métricas dentro do jogo como: dinheiro, humor da equipe e percentual de progresso.
 
 ========== Descrição das Camadas ==========
 
