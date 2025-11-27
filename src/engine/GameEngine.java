@@ -14,12 +14,12 @@ public class GameEngine {
 
     private final int TOTAL_RODADAS;
     private final int MAX_DECISOES_POR_RODADA;
+    private static final GameEventManager OBSERVER = new GameEventManager();
 
-    private final GameEventManager eventManager;
+    public static GameEventManager getEventManager() { return OBSERVER; }
     private final StartupRepository repository = new StartupRepository();
 
-    public GameEngine(GameEventManager eventManager, Config config) {
-        this.eventManager = eventManager;
+    public GameEngine(Config config) {
         this.TOTAL_RODADAS = config.getTotalRodadas();
         this.MAX_DECISOES_POR_RODADA = config.getMaxDecisoesPorRodada();
     }
@@ -47,15 +47,15 @@ public class GameEngine {
                     List<TipoDecisao> escolhidas = escolherDecisoesNoConsole(in);
 
                     for (TipoDecisao d : escolhidas) {
-                        eventManager.notify(new GameEvent("DECISAO",
-                                s.getNome() + " escolheu " + d));
+                        OBSERVER.notify(new GameEvent("DECISAO",
+                            s.getNome() + " escolheu " + d));
                         aplicarDecisao(s, d);
                     }
 
                     fecharRodada(s);
 
-                    eventManager.notify(new GameEvent("FECHAMENTO",
-                            "Rodada concluída para " + s.getNome()));
+                            OBSERVER.notify(new GameEvent("FECHAMENTO",
+                                "Rodada concluída para " + s.getNome()));
 
                     System.out.println("Resumo pós-rodada: " + s);
                 }
@@ -75,23 +75,26 @@ public class GameEngine {
 
         try {
             switch (d) {
-                case MARKETING -> {
+                case MARKETING: {
                     s.diminuirCaixa(10_000);
                     s.getReputacao().aumentar(5);
                     s.addBonusPercentReceitaProx(0.03);
                     desc = "Marketing: -R$10k caixa, +5 rep, +3% receita";
+                    break;
                 }
-                case EQUIPE -> {
+                case EQUIPE: {
                     s.diminuirCaixa(5_000);
                     s.getMoral().aumentar(7);
                     desc = "Equipe: -R$5k caixa, +7 moral";
+                    break;
                 }
-                case PRODUTO -> {
+                case PRODUTO: {
                     s.diminuirCaixa(8_000);
                     s.addBonusPercentReceitaProx(0.04);
                     desc = "Produto: -R$8k caixa, +4% receita";
+                    break;
                 }
-                case INVESTIDORES -> {
+                case INVESTIDORES: {
                     boolean aprovado = Math.random() < 0.60;
                     if (aprovado) {
                         s.aumentarCaixa(40_000);
@@ -101,18 +104,23 @@ public class GameEngine {
                         s.getReputacao().diminuir(2);
                         desc = "Investidores REPROVADO: -2 rep";
                     }
+                    break;
                 }
-                case CORTAR_CUSTOS -> {
+                case CORTAR_CUSTOS: {
                     s.aumentarCaixa(8_000);
                     s.getMoral().diminuir(5);
                     desc = "Cortar custos: +R$8k caixa, -5 moral";
+                    break;
+                }
+                default: {
+                    break;
                 }
             }
 
             s.clamparHumor();
             s.registrar(desc);
 
-            eventManager.notify(new GameEvent("IMPACTO", s.getNome() + ": " + desc));
+            OBSERVER.notify(new GameEvent("IMPACTO", s.getNome() + ": " + desc));
 
         } catch (Exception e) {
             System.err.println("Erro ao aplicar decisão " + d + ": " + e.getMessage());
@@ -137,7 +145,7 @@ public class GameEngine {
 
             s.registrar(msg);
 
-            eventManager.notify(new GameEvent("FECHAMENTO", s.getNome() + ": " + msg));
+            OBSERVER.notify(new GameEvent("FECHAMENTO", s.getNome() + ": " + msg));
 
         } catch (Exception e) {
             System.err.println("Erro ao fechar rodada: " + e.getMessage());
@@ -155,14 +163,14 @@ public class GameEngine {
 
             for (Startup s : startups) {
 
-                eventManager.notify(new GameEvent("RANKING",
-                        s.getNome() + " score: " + round2(s.scoreFinal())));
+                OBSERVER.notify(new GameEvent("RANKING",
+                    s.getNome() + " score: " + round2(s.scoreFinal())));
 
                 System.out.printf(Locale.US, "%d) %s | SCORE: %.2f | %s%n",
                         pos++, s.getNome(), round2(s.scoreFinal()), s);
             }
 
-            // 👉 Persistência real no H2
+            //  Persistência real no H2
             System.out.println("\nSalvando dados no banco H2...");
 
             for (Startup s : startups) {

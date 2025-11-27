@@ -11,11 +11,11 @@ public class InvestidoresStrategy implements DecisaoStrategy {
         boolean aprovado = Math.random() < CHANCE_APROVACAO;
 
         if (aprovado) {
-            s.setCaixa(s.getCaixa() + 40_000);
-            s.setReputacao(s.getReputacao() + 3);
+            s.aumentarCaixa(40_000);
+            s.addReputacao(3);
             s.registrar("Investidores: APROVADO +R$40k caixa, +3 rep");
         } else {
-            s.setReputacao(s.getReputacao() - 2);
+            s.addReputacao(-2);
             s.registrar("Investidores: REPROVADO -2 rep");
         }
 

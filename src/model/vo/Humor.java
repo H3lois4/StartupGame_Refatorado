@@ -24,6 +24,11 @@ public class Humor {
         valor = clamp(valor - v);
     }
 
+    public Humor clamp() {
+        this.valor = clamp(this.valor);
+        return this;
+    }
+
     @Override
     public String toString() {
         return valor + "/100";

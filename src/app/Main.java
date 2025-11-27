@@ -1,8 +1,8 @@
 package app;
 
 import config.Config;
+import engine.GameEngine;
 import observer.ConsoleEventListener;
-import observer.GameEventManager;
 import ui.ConsoleApp;
 
 public class Main {
@@ -12,10 +12,10 @@ public class Main {
         try {
             Config config = new Config();
 
-            GameEventManager eventManager = new GameEventManager();
-            eventManager.addListener(new ConsoleEventListener());
+            // Registra listener no observer central do GameEngine
+            GameEngine.getEventManager().addListener(new ConsoleEventListener());
 
-            ConsoleApp app = new ConsoleApp(eventManager, config);
+            ConsoleApp app = new ConsoleApp(config);
             app.iniciar();
 
         } catch (Exception e) {

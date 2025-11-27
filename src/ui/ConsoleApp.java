@@ -2,8 +2,7 @@ package ui;
 
 import engine.GameEngine;
 import model.Startup;
-import observer.GameEventManager;
-import observer.ConsoleEventListener;
+import config.Config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +12,10 @@ public class ConsoleApp {
 
     private final Scanner in = new Scanner(System.in);
     private final GameEngine engine;
-    private final GameEventManager eventManager;
 
-    public ConsoleApp(GameEventManager eventManager) {
-        this.eventManager = eventManager;
-
-        // cria o motor do jogo com config + observer
-        this.engine = new GameEngine(eventManager);
-
-        // Listener padrão no console
-        this.eventManager.addListener(new ConsoleEventListener());
+    public ConsoleApp(Config config) {
+        // cria o motor do jogo com config (usa o observer central em GameEngine)
+        this.engine = new GameEngine(config);
     }
 
     public void iniciar() {

@@ -12,10 +12,8 @@ public class StartupRepository {
 
     public long salvarStartup(Startup s) {
 
-        String sql = """
-            INSERT INTO startups (nome, caixa, receita_base, reputacao, moral, score)
-            VALUES (?, ?, ?, ?, ?, ?)
-        """;
+        String sql = "INSERT INTO startups (nome, caixa, receita_base, reputacao, moral, score)"
+            + " VALUES (?, ?, ?, ?, ?, ?)";
 
         try (Connection conn = provider.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -49,10 +47,7 @@ public class StartupRepository {
             return;
         }
 
-        String sql = """
-            INSERT INTO historico (startup_id, mensagem)
-            VALUES (?, ?)
-        """;
+        String sql = "INSERT INTO historico (startup_id, mensagem) VALUES (?, ?)";
 
         try (Connection conn = provider.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {

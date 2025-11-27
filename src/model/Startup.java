@@ -34,10 +34,10 @@ public class Startup {
     }
 
     /** Receita da rodada considerando bônus */
-    public Dinheiro receitaRodada() {
+    public double receitaRodada() {
         double valor = receitaBase.toDouble() * (1.0 + bonusReceitaProx.toDouble());
         bonusReceitaProx = new Percentual(0.0);
-        return new Dinheiro(valor);
+        return valor;
     }
 
     /** Garantir reputação e moral em 0..100 (delegado ao VO Humor) */
@@ -58,24 +58,33 @@ public class Startup {
 
     public Dinheiro getCaixa() { return caixa; }
     public void setCaixa(Dinheiro caixa) { this.caixa = caixa; }
-    public void addCaixa(double delta) { this.caixa = this.caixa.add(delta); }
+    public void addCaixa(double delta) { this.caixa.aumentar(delta); }
+    public void aumentarCaixa(double v) { this.caixa.aumentar(v); }
+    public void diminuirCaixa(double v) { this.caixa.diminuir(v); }
 
     public Dinheiro getReceitaBase() { return receitaBase; }
     public void setReceitaBase(Dinheiro receitaBase) { this.receitaBase = receitaBase; }
-    public void addReceitaBase(double delta) { this.receitaBase = this.receitaBase.add(delta); }
+    public void addReceitaBase(double delta) { this.receitaBase.aumentar(delta); }
+    public void aumentarReceitaBasePercentual(double percentual) {
+        double delta = this.receitaBase.toDouble() * percentual;
+        this.receitaBase.aumentar(delta);
+    }
 
     public Humor getReputacao() { return reputacao; }
     public void setReputacao(Humor reputacao) { this.reputacao = reputacao; }
-    public void addReputacao(int delta) { this.reputacao = this.reputacao.add(delta); }
+    public void addReputacao(int delta) { this.reputacao.aumentar(delta); }
 
     public Humor getMoral() { return moral; }
     public void setMoral(Humor moral) { this.moral = moral; }
-    public void addMoral(int delta) { this.moral = this.moral.add(delta); }
+    public void addMoral(int delta) { this.moral.aumentar(delta); }
 
     public Percentual getBonusReceitaProx() { return bonusReceitaProx; }
     public void addBonusReceitaProx(double delta) {
-        this.bonusReceitaProx = this.bonusReceitaProx.add(delta);
+        this.bonusReceitaProx.somar(delta);
     }
+
+    // alias usado por GameEngine/tests
+    public void addBonusPercentReceitaProx(double delta) { addBonusReceitaProx(delta); }
 
     public int getRodadaAtual() { return rodadaAtual; }
     public void setRodadaAtual(int rodadaAtual) { this.rodadaAtual = rodadaAtual; }
