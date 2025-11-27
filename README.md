@@ -73,26 +73,14 @@ RELATORIO.md
 ➜ schema.sql: Contém as tabelas do banco H2 (startups, historico e rodadas)
 
 # Execução
-➜ Via IDE (IntelliJ, VSCode, Eclipse)
-1. Importe o projeto como **Java Project**  
-2. Certifique-se de que o diretório `resources/` esteja no classpath  
-3. Execute a classe: app.Main
-
 ➜ Via terminal
 1. Compilar
-    Windows:
-        ```bash
-        javac -cp "lib/h2.jar" -d out src/**/*.java
-
-    Linux/Mac:
-        javac -cp "lib/h2.jar" -d out src/**/*.java
+    find src -name "*.java" \! -path "src/test/*" > /tmp/sources.txt
+    mkdir -p out
+    javac -d out @/tmp/sources.txt 
 
 2. Rodar
-    Windows:
-        java -cp "out;lib/h2.jar" app.Main
-
-    Linux/Mac:
-        java -cp "out:lib/h2.jar" app.Main
+    java -cp out:resources app.Main 
 
 # Padrões de Projeto Utilizados
 Strategy: aplicado às decisões do jogo (“Marketing”, “Equipe”, “Produto”, etc.).
