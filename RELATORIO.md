@@ -9,6 +9,13 @@
    O objetivo é oferecer ao usuário uma experiência tomada de decisões 
  que afetam métricas dentro do jogo como: dinheiro, humor da equipe e percentual de progresso.
 
+   java -cp out:resources app.Main (roda)
+
+
+        find src -name "*.java" \! -path "src/test/*" > /tmp/sources.txt
+        mkdir -p out
+        javac -d out @/tmp/sources.txt           (Compila)
+
 ========== Descrição das Camadas ==========
 
 --> actions/
